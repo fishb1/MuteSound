@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">MuteSound</string>
+    <string name="start_time">Время отключения:</string>
+    <string name="end_time">Время включения:</string>
+    <string name="null_time">--:--</string>
+    <string name="time_pick_dialog_title">Укажите время</string>
+    <string name="switch_text">Задание разрешено: </string>
+</resources>
