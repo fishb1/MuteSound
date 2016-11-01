@@ -5,4 +5,14 @@
     <string name="null_time">--:--</string>
     <string name="time_pick_dialog_title">Укажите время</string>
     <string name="switch_text">Задание разрешено: </string>
+    <string name="diff_days">%d д.</string>
+    <string name="diff_hours">%d ч.</string>
+    <string name="diff_minutes">%d м.</string>
+    <string name="less_then_a_minute">менее минуты</string>
+    <string name="msg_remain_time">До отключения звука %s</string>
+    <string name="msg_cancel_task">Отключение звука отменено</string>
+    <string name="msg_time_not_defined">Сначала установите время!</string>
+    <string name="msg_sound_set_to_silent">Установлен беззвучный режим звонков</string>
+    <string name="msg_sound_set_to_normal">Установлен нормальный режим звонков</string>
+
 </resources>

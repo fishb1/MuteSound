@@ -51,7 +51,7 @@
         android:layout_below="@+id/row1"
         android:layout_marginStart="10dp"
         android:layout_marginLeft="10dp"
-        android:layout_marginTop="15dp">
+        android:layout_marginTop="10dp">
 
         <TextView
             android:text="@string/end_time"
@@ -71,21 +71,91 @@
             android:text="@string/null_time"
             android:onClick="editTime"
             android:layout_weight="2"
-            android:layout_gravity="center_vertical"
-             />
+            android:layout_gravity="center_vertical" />
+    </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/row3"
+        android:orientation="vertical"
+        android:layout_below="@+id/row2"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp">
+
+        <TextView
+            android:text="Дни недели:"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:id="@+id/textView4"
+            android:textSize="18sp"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:layout_marginBottom="10dp"/>
+
+        <CheckBox
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Понедельник"
+            android:onClick="checkDay"
+            android:tag="0"
+            android:id="@+id/day1" />
+        <CheckBox
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Вторник"
+            android:onClick="checkDay"
+            android:tag="1"
+            android:id="@+id/day2" />
+        <CheckBox
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Среда"
+            android:onClick="checkDay"
+            android:tag="2"
+            android:id="@+id/day3" />
+        <CheckBox
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Четверг"
+            android:onClick="checkDay"
+            android:tag="3"
+            android:id="@+id/day4" />
+        <CheckBox
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Пятница"
+            android:onClick="checkDay"
+            android:tag="4"
+            android:id="@+id/day5" />
+        <CheckBox
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Суббота"
+            android:onClick="checkDay"
+            android:tag="5"
+            android:id="@+id/day6" />
+        <CheckBox
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Воскресенье"
+            android:onClick="checkDay"
+            android:tag="6"
+            android:id="@+id/day7" />
     </LinearLayout>
 
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/row3"
-        android:layout_below="@+id/row2"
+        android:id="@+id/row4"
+        android:layout_below="@+id/row3"
         android:layout_marginStart="10dp"
         android:layout_marginLeft="10dp"
-        android:layout_marginTop="15dp"
-         >
+        android:layout_marginTop="10dp" >
 
         <TextView
             android:text="@string/switch_text"

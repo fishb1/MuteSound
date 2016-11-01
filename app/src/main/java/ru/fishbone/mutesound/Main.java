@@ -2,16 +2,15 @@ package ru.fishbone.mutesound;
 
 import android.app.Activity;
 import android.app.DialogFragment;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import java.util.Calendar;
 import java.util.Locale;
 
 /**
@@ -20,176 +19,150 @@ import java.util.Locale;
 public class Main extends Activity {
 
     private final static String TAG = "MuteSound";
-    private Calendar startTime; // When we should do sound off
-    private Calendar endTime; // When we should do sound on
     private Button startTimeBtn;
     private Button endTimeBtn;
     private ToggleButton toggleBtn;
-    private boolean scheduleEnabled;
+    private SparseArray<CheckBox> daysCheckBoxes = new SparseArray<>();
+    protected Schedule schedule; // Encapsulate form data
+    final static int SCHEDULE_ID = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.i(TAG, "Main activity created");
+        Log.i(TAG, "onCreate: main activity");
         setContentView(R.layout.activity_main);
+        // Init some useful fields
         startTimeBtn = (Button) findViewById(R.id.timeStartBtn);
         endTimeBtn = (Button) findViewById(R.id.timeEndBtn);
         toggleBtn = (ToggleButton) findViewById(R.id.toggleButton);
-        if (savedInstanceState == null) { // If it's first start or user close app before, we need to load values from shared pref.
-            savedInstanceState = loadState(this);
+        daysCheckBoxes.put(1, (CheckBox) findViewById(R.id.day1));
+        daysCheckBoxes.put(2, (CheckBox) findViewById(R.id.day2));
+        daysCheckBoxes.put(3, (CheckBox) findViewById(R.id.day3));
+        daysCheckBoxes.put(4, (CheckBox) findViewById(R.id.day4));
+        daysCheckBoxes.put(5, (CheckBox) findViewById(R.id.day5));
+        daysCheckBoxes.put(6, (CheckBox) findViewById(R.id.day6));
+        daysCheckBoxes.put(7, (CheckBox) findViewById(R.id.day7));
+        // Try to restore state and fill values in the views
+        if (savedInstanceState != null) { // If it's first start or user close app before, we need to load values from shared pref.
+            schedule = (Schedule) savedInstanceState.getSerializable(Cons.SCHEDULE);
+        } else {
+            schedule = new Schedule(SCHEDULE_ID);
+            schedule.loadState(this);
         }
-        startTime = (Calendar) savedInstanceState.getSerializable(Cons.BUNDLE_START_TIME);
-        endTime = (Calendar) savedInstanceState.getSerializable(Cons.BUNDLE_END_TIME);
-        scheduleEnabled = savedInstanceState.getBoolean(Cons.BUNDLE_ENABLED);
         updateViews();
     }
     /**
-     * Edit the one of two times. OnClick handler for buttons.
+     * Edit time. OnClick handler for buttons.
      *
-     * @param view
+     * @param view clicked button
      */
     public void editTime(View view) {
-        Calendar c = null;
+        int timeType = 0;
         switch (view.getId()) {
             case R.id.timeStartBtn:
-                c = startTime;
+                timeType = Schedule.START_TIME;
                 break;
             case R.id.timeEndBtn:
-                c = endTime;
+                timeType = Schedule.END_TIME;
                 break;
             default:
                 Log.i(TAG, "editTime: Huh?");
         }
-        if (c == null) {
-            c = Calendar.getInstance();
-        }
-        DialogFragment newFragment = TimePickerFragment.newInstance(view.getId(),
-                c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE));
+        DialogFragment newFragment = TimePickerFragment.newInstance(
+                view.getId(),
+                schedule.getHour(timeType),
+                schedule.getMinute(timeType)
+        );
         newFragment.show(getFragmentManager(), "edit_time");
     }
+
     public void changeMode(View view) {
-        scheduleEnabled = toggleBtn.isChecked();
-        if (scheduleEnabled) {
+        schedule.setEnabled(toggleBtn.isChecked());
+        if (schedule.isEnabled()) {
             Log.i(TAG, "changeMode: enabled");
-            if (startTime == null || endTime == null) {
-                Toast.makeText(this, "Установите время", Toast.LENGTH_SHORT).show();
+            if (!schedule.isTimeSet(Schedule.START_TIME) || !schedule.isTimeSet(Schedule.END_TIME)) {
+                Toast.makeText(this, getString(R.string.msg_time_not_defined), Toast.LENGTH_SHORT).show();
                 return;
             }
-            long totalTime = TaskScheduler.correctTime(startTime).getTimeInMillis() - Calendar.getInstance().getTimeInMillis();
-            Toast.makeText(this, "Звук будет отключен через " + totalTime + " мс", Toast.LENGTH_SHORT).show();
-            TaskScheduler.createTask(this, startTime, Cons.SOUND_OFF);
-            TaskScheduler.createTask(this, endTime, Cons.SOUND_ON);
+            Toast.makeText(this, String.format(getString(R.string.msg_remain_time),
+                    schedule.getTimeDiff(Schedule.START_TIME, this)), Toast.LENGTH_SHORT).show();
+
+            TaskManager.createTask(this, schedule.getNextTime(Schedule.START_TIME), Cons.SOUND_OFF);
         } else {
             Log.i(TAG, "changeMode: disabled");
-            TaskScheduler.cancelTask(this, Cons.SOUND_OFF);
-            TaskScheduler.cancelTask(this, Cons.SOUND_ON);
-            Toast.makeText(this, "Отключение звука отменено", Toast.LENGTH_SHORT).show();
+            TaskManager.cancelTask(this, Cons.SOUND_OFF);
+            TaskManager.cancelTask(this, Cons.SOUND_ON);
+            Toast.makeText(this, getString(R.string.msg_cancel_task), Toast.LENGTH_SHORT).show();
         }
     }
     /**
      * Set up time. Calls from TimePickerDialog when user has finished to edit the time
      *
-     * @param id
-     * @param hours
-     * @param minutes
+     * @param id is id of clicked button
+     * @param hours selected hour
+     * @param minutes selected minute
      */
     public void setUpTime(int id, int hours, int minutes) {
-        Calendar c = Calendar.getInstance();
-        c.set(Calendar.HOUR_OF_DAY, hours);
-        c.set(Calendar.MINUTE, minutes);
         switch (id) {
             case R.id.timeStartBtn:
-                startTime = c;
+                schedule.setTime(Schedule.START_TIME, hours, minutes);
                 break;
             case R.id.timeEndBtn:
-                endTime = c;
+                schedule.setTime(Schedule.END_TIME, hours, minutes);
                 break;
             default:
                 Log.i(TAG, "setUpTime: Huh?");
         }
         updateViews();
     }
+    /**
+     * Check day. Calls when one of checkboxes was selected
+     *
+     * @param view selected checkbox
+     */
+    public void checkDay(View view) {
+        for (int i = 0; i < daysCheckBoxes.size(); i++) {
+            int key = daysCheckBoxes.keyAt(i);
+            if (daysCheckBoxes.get(key) == view) {
+                schedule.setDay(key, daysCheckBoxes.get(key).isChecked());
+            }
+        }
+    }
 
     @Override
     protected void onPause() {
         super.onPause();
         Log.i(TAG, "Main activity paused");
-        // If user close app we need to save our values into the storage
-        Bundle bundle = new Bundle();
-        bundle.putSerializable(Cons.BUNDLE_START_TIME, startTime);
-        bundle.putSerializable(Cons.BUNDLE_END_TIME, endTime);
-        bundle.putBoolean(Cons.BUNDLE_ENABLED, scheduleEnabled);
-        saveState(this, bundle);
+        // If user close app we need to save schedule into the Shared Pref.
+        if (schedule != null) {
+            schedule.saveState(this);
+        }
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        // Place our fields into the Bundle, to get it in onCreate in future
-        outState.putSerializable(Cons.BUNDLE_START_TIME, startTime);
-        outState.putSerializable(Cons.BUNDLE_END_TIME, endTime);
-        outState.putBoolean(Cons.BUNDLE_ENABLED, scheduleEnabled);
+        // Place schedule into the Bundle, to get it back in onCreate in future
+        outState.putSerializable(Cons.SCHEDULE, schedule);
     }
     /**
      * Update views. Updates caption on the buttons when time was edited.
      */
     private void updateViews() {
-        if (startTime != null) {
+        if (schedule.isTimeSet(Schedule.START_TIME)) {
             startTimeBtn.setText(String.format(Locale.getDefault(), "%02d:%02d",
-                    startTime.get(Calendar.HOUR_OF_DAY), startTime.get(Calendar.MINUTE)));
+                    schedule.getHour(Schedule.START_TIME),
+                    schedule.getMinute(Schedule.START_TIME)));
         }
-        if (endTime != null) {
+        if (schedule.isTimeSet(Schedule.END_TIME)) {
             endTimeBtn.setText(String.format(Locale.getDefault(), "%02d:%02d",
-                    endTime.get(Calendar.HOUR_OF_DAY), endTime.get(Calendar.MINUTE)));
+                    schedule.getHour(Schedule.END_TIME),
+                    schedule.getMinute(Schedule.END_TIME)));
         }
-        toggleBtn.setChecked(scheduleEnabled);
+        toggleBtn.setChecked(schedule.isEnabled());
+        for (int i = 0; i < daysCheckBoxes.size(); i++) {
+            int key = daysCheckBoxes.keyAt(i);
+            daysCheckBoxes.get(key).setChecked(schedule.isDayEnabled(key));
+        }
     }
-    /**
-     * Save state. Saves all values to the shared pref.
-     *
-     * @param context
-     * @param bundle
-     */
-    public static void saveState(Context context, Bundle bundle) {
-        SharedPreferences sharedPref = context.getSharedPreferences(Cons.SHARED_PREF_NAME,
-                Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-        Calendar startTime = (Calendar) bundle.getSerializable(Cons.BUNDLE_START_TIME);
-        if (startTime != null) {
-            editor.putLong(Cons.CFG_START_TIME, startTime.getTimeInMillis());
-        }
-        Calendar endTime = (Calendar) bundle.getSerializable(Cons.BUNDLE_END_TIME);
-        if (endTime != null) {
-            editor.putLong(Cons.CFG_END_TIME, endTime.getTimeInMillis());
-        }
-        editor.putBoolean(Cons.CFG_ENABLED, bundle.getBoolean(Cons.BUNDLE_ENABLED));
-        editor.apply();
-    }
-    /**
-     * Load state. Reads all need data from shared pref into the Bundle and return it.
-     *
-     * @param context
-     * @return
-     */
-    public static Bundle loadState(Context context) {
-        SharedPreferences sharedPref = context.getSharedPreferences(Cons.SHARED_PREF_NAME,
-                Context.MODE_PRIVATE);
-        Bundle bundle = new Bundle();
-        long time;
-        time = sharedPref.getLong(Cons.CFG_START_TIME, -1);
-        if (time > 0) {
-            Calendar startTime = Calendar.getInstance();
-            startTime.setTimeInMillis(time);
-            bundle.putSerializable(Cons.BUNDLE_START_TIME, startTime);
-        }
-        time = sharedPref.getLong(Cons.CFG_END_TIME, -1);
-        if (time > 0) {
-            Calendar endTime = Calendar.getInstance();
-            endTime.setTimeInMillis(time);
-            bundle.putSerializable(Cons.BUNDLE_END_TIME, endTime);
-        }
-        bundle.putBoolean(Cons.BUNDLE_ENABLED, sharedPref.getBoolean(Cons.CFG_ENABLED, false));
-        return bundle;
-    }
-
 }

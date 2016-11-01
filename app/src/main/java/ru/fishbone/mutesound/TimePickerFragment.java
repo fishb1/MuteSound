@@ -1,9 +1,7 @@
 package ru.fishbone.mutesound;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.content.Context;
 import android.support.annotation.Nullable;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
@@ -13,6 +11,8 @@ import android.widget.TimePicker;
 
 
 /**
+ * Time Picker Dialog
+ *
  * Created by fishbone on 06.10.2016.
  */
 

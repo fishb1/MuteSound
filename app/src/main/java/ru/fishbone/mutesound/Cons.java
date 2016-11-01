@@ -11,11 +11,12 @@ interface Cons {
     String SOUND_OFF = "ru.fishbone.mutesound.SOUND_OFF";
     String RINGER_MODE_CHANGED = "android.media.RINGER_MODE_CHANGED";
     String BOOT_COMPLETE = "android.intent.action.BOOT_COMPLETED";
-    String CFG_START_TIME = "start_time";
-    String CFG_END_TIME = "end_time";
+    String CFG_START_HOUR = "start_hour";
+    String CFG_START_MINUTE = "start_minute";
+    String CFG_END_HOUR = "end_hour";
+    String CFG_END_MINUTE = "end_minute";
     String CFG_ENABLED = "enabled";
+    String CFG_DAYS = "days";
     String SHARED_PREF_NAME = "default";
-    String BUNDLE_START_TIME = "startTime";
-    String BUNDLE_END_TIME = "endTime";
-    String BUNDLE_ENABLED = "scheduleEnabled";
+    String SCHEDULE = "schedule";
 }
